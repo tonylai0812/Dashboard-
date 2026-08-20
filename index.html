@@ -2,11 +2,17 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>iPad Home Dashboard</title>
+
+  <!-- 🌟 關鍵：強制 iOS 舊版 Safari 開啟全螢幕模式的設定 🌟 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #FFFDF8; color: #333333; margin: 0; padding: 20px; }
+    body { background-color: #FFFDF8; color: #333333; margin: 0; padding: 20px; padding-top: 30px; /* 留出頂部狀態欄空間 */ }
 
     /* 頂部時間欄 */
     .top-bar { display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-bottom: 15px; }
@@ -15,7 +21,7 @@
     .date { font-size: 1.4rem; font-weight: 700; color: #FF6B81; }
     .refresh-btn { background: #FFB800; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-    /* 主網格佈局 - 針對 iOS 9 使用舊版 Flexbox 確保相容 */
+    /* 主網格佈局 - 支援舊版 Flexbox */
     .dashboard-grid { display: flex; display: -webkit-flex; gap: 20px; height: calc(100vh - 120px); }
     .card { flex: 1; -webkit-flex: 1; background: #FFFFFF; border-radius: 20px; padding: 20px; border: 1px solid #EFEFEF; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; display: -webkit-flex; flex-direction: column; -webkit-flex-direction: column; }
     .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; display: -webkit-flex; align-items: center; -webkit-align-items: center; justify-content: space-between; -webkit-justify-content: space-between; }
@@ -98,7 +104,7 @@
     // 2. 天氣資料
     function getHKWeather() {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc', true);
+      xhr.open('GET', 'https://weather.gov.hk', true);
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           try {
@@ -118,19 +124,16 @@
     }
     getHKWeather();
 
-    // 3. 隨機相片輪播邏輯 (指向你剛剛上傳到 GitHub 的自訂相片)
+    // 3. 隨機相片輪播邏輯
     var imageList = [
-      '1.jpg',
-      '2.jpg',
-      '3.jpg',
-      '4.jpg',
-      '5.jpg'
+      'photo1.jpg',
+      'photo2.jpg',
+      'photo3.jpg'
     ];
 
     function changeRandomPhoto() {
       var imgElement = document.getElementById('dashboard-photo');
       var randomIndex = Math.floor(Math.random() * imageList.length);
-      // 加入時間戳記防網頁快取
       imgElement.src = imageList[randomIndex] + '?t=' + new Date().getTime(); 
     }
 
