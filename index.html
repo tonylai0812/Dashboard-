@@ -5,41 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPad Home Dashboard</title>
   <style>
-    :root {
-      --bg-color: #FFFDF8;
-      --card-bg: #FFFFFF;
-      --text-main: #333333;
-      --text-sub: #666666;
-      --accent-blue: #00A2FF;
-      --accent-pink: #FF6B81;
-      --border-color: #EFEFEF;
-    }
-
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #FFFDF8; color: #333333; margin: 0; padding: 20px; }
 
     /* 頂部時間欄 */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .clock-group { display: flex; align-items: baseline; gap: 12px; }
+    .top-bar { display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-bottom: 15px; }
+    .clock-group { display: flex; display: -webkit-flex; align-items: baseline; -webkit-align-items: baseline; gap: 12px; }
     .time { font-size: 3.2rem; font-weight: 800; color: #00A2FF; letter-spacing: -1px; }
     .date { font-size: 1.4rem; font-weight: 700; color: #FF6B81; }
     .refresh-btn { background: #FFB800; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-    /* 主網格佈局 */
-    .dashboard-grid { display: flex; gap: 20px; height: calc(100vh - 100px); }
-    .card { flex: 1; background: #FFFFFF; border-radius: 20px; padding: 20px; border: 1px solid #EFEFEF; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; }
-    .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+    /* 主網格佈局 - 針對 iOS 9 使用舊版 Flexbox 確保相容 */
+    .dashboard-grid { display: flex; display: -webkit-flex; gap: 20px; height: calc(100vh - 120px); }
+    .card { flex: 1; -webkit-flex: 1; background: #FFFFFF; border-radius: 20px; padding: 20px; border: 1px solid #EFEFEF; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; display: -webkit-flex; flex-direction: column; -webkit-flex-direction: column; }
+    .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; display: -webkit-flex; align-items: center; -webkit-align-items: center; justify-content: space-between; -webkit-justify-content: space-between; }
 
     /* 天氣樣式 */
     .temp-large { font-size: 4rem; font-weight: 800; color: #FF9F00; line-height: 1; }
-    .weather-detail { display: flex; gap: 10px; margin-top: 20px; }
-    .pill-box { flex: 1; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; font-weight: bold; display: flex; justify-content: space-between; }
+    .weather-detail { display: flex; display: -webkit-flex; gap: 10px; margin-top: 20px; }
+    .pill-box { flex: 1; -webkit-flex: 1; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; font-weight: bold; display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; }
     .pill-humidity { background: #E6F7FF; color: #00A2FF; }
     .pill-rain { background: #FFE6EA; color: #FF6B81; }
 
     /* 相片輪播樣式 */
-    .photo-container { flex: 1; border-radius: 14px; overflow: hidden; position: relative; background: #F5F5F5; }
-    .photo-container img { width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+    .photo-container { flex: 1; -webkit-flex: 1; border-radius: 14px; overflow: hidden; position: relative; background: #F5F5F5; height: 100%; }
+    .photo-container img { width: 100%; height: 100%; object-fit: cover; }
   </style>
 </head>
 <body>
@@ -59,7 +49,7 @@
     <!-- 左側：天氣 Widget -->
     <div class="card">
       <div class="card-title">☀️ 香港即時與分時天氣 <span style="font-size: 0.85rem; color:#888;">毎時予報</span></div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+      <div style="display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-top: 10px;">
         <div>
           <div style="font-size: 1.3rem; font-weight: bold;">香港 🎯</div>
           <div id="temp" class="temp-large">28°</div>
@@ -75,24 +65,23 @@
       </div>
     </div>
 
-    <!-- 右側：相冊 Widget (隨機顯示/輪播) -->
+    <!-- 右側：相冊 Widget -->
     <div class="card">
       <div class="card-title">🖼️ 精選相簿 <span style="font-size: 0.85rem; color:#888;">Random Photo</span></div>
       <div class="photo-container">
-        <img id="dashboard-photo" src="" alt="相片載入中...">
+        <img id="dashboard-photo" src="photo1.jpg" alt="相片載入中...">
       </div>
     </div>
 
   </div>
 
-  <!-- JavaScript 舊版 Safari 相容邏輯 (ES5) -->
+  <!-- JavaScript 舊版 Safari 相容邏輯 -->
   <script>
-    // 補丁：舊版 Safari 補齊數字補零 (padStart)
     function padZero(num) {
       return (num < 10 ? '0' : '') + num;
     }
 
-    // 1. 時間更新 (兼容舊版 iOS)
+    // 1. 時間更新
     function updateClock() {
       var now = new Date();
       var h = padZero(now.getHours());
@@ -106,7 +95,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. 天氣資料 (使用舊版 XMLHttpRequest 替代 fetch)
+    // 2. 天氣資料
     function getHKWeather() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc', true);
@@ -129,22 +118,22 @@
     }
     getHKWeather();
 
-    // 3. 隨機相片輪播邏輯
+    // 3. 隨機相片輪播邏輯 (指向你剛剛上傳到 GitHub 的自訂相片)
     var imageList = [
-      'https://i.imgur.com/eJ6dczE.jpeg',
-      'https://i.imgur.com/1gNwPw1.jpeg',
-      'https://i.imgur.com/fdWONlV.jpeg',
-      'https://i.imgur.com/gRfruO9.jpeg',
-      'https://i.imgur.com/bqVmQbI.jpeg'
+      '1.jpg',
+      '2.jpg',
+      '3.jpg',
+      '4.jpg',
+      '5.jpg'
     ];
 
     function changeRandomPhoto() {
       var imgElement = document.getElementById('dashboard-photo');
       var randomIndex = Math.floor(Math.random() * imageList.length);
-      imgElement.src = imageList[randomIndex];
+      // 加入時間戳記防網頁快取
+      imgElement.src = imageList[randomIndex] + '?t=' + new Date().getTime(); 
     }
 
-    // 初始化顯示一張相片，之後每 30 秒隨機換一張
     changeRandomPhoto();
     setInterval(changeRandomPhoto, 30000);
   </script>
