@@ -1,5 +1,3 @@
-//For ipad mini
-
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -133,27 +131,17 @@
 
     // 3. 隨機相片輪播邏輯
     var imageList = [
-      '1.jpg',
-      '2.jpg',
-      '3.jpg',
-      '4.jpg',
-      '5.jpg'
+      'https://i.imgur.com/eJ6dczE.jpeg',
+      'https://i.imgur.com/1gNwPw1.jpeg',
+      'https://i.imgur.com/fdWONlV.jpeg',
+      'https://i.imgur.com/gRfruO9.jpeg',
+      'https://i.imgur.com/bqVmQbI.jpeg'
     ];
 
     function changeRandomPhoto() {
       var imgElement = document.getElementById('dashboard-photo');
       var randomIndex = Math.floor(Math.random() * imageList.length);
-      var targetSrc = = imageList[randomIndex];
-      //預先下載IMAGE
-      var tempImg = new Image();
-      tempImg.onload = function() {
-        imgElement.src = targetSrc;
-      };
-      tempImg.onerror = function() {
-        console.log('圖片載入失敗:' + targetSrc);
-      };
-      
-      tempImg.src = targetSrc + '?v=' + new Date().getTime();
+      imgElement.src = imageList[randomIndex];
     }
 
     // 初始化顯示一張相片，之後每 30 秒隨機換一張
