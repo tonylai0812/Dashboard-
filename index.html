@@ -33,7 +33,7 @@ html<!DOCTYPE html>
     .pill-humidity { background: #E6F7FF; color: #00A2FF; }
     .pill-rain { background: #FFE6EA; color: #FF6B81; }
 
-    /* 🌟 新增：9天天氣預報表格樣式 (相容舊iOS 9系統) 🌟 */
+    /* 9天天氣預報表格樣式 */
     .forecast-box { flex: 1; -webkit-flex: 1; overflow-y: auto; border-top: 1px dashed #EFEFEF; padding-top: 15px; }
     .forecast-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
     .forecast-table tr { border-bottom: 1px solid #FAFAFA; }
@@ -64,28 +64,28 @@ html<!DOCTYPE html>
     
     <!-- 左側：天氣 Widget -->
     <div class="card">
-      <div class="card-title">☀️ 香港即時與分時天氣 <span style="font-size: 0.85rem; color:#888;">毎時予報</span></div>
+      <div class="card-title">☀️ 香港即時與九天天氣預報 <span style="font-size: 0.85rem; color:#888;">九日間予報</span></div>
       <div style="display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-top: 10px;">
         <div>
           <div style="font-size: 1.3rem; font-weight: bold;">香港 🎯</div>
-          <div id="temp" class="temp-large">28°</div>
+          <!-- 這裡顯示今日預測的平均/基準溫度 -->
+          <div id="temp" class="temp-large">--°</div>
           <div id="forecast-today-range" style="font-size: 0.9rem; color: #666; margin-top: 6px;">今日預測: --°C</div>
         </div>
-        <div id="weather-desc-today" style="background: #E6F7FF; color: #00A2FF; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 150px;">
-          讀取中...
+        <div id="weather-desc-today" style="background: #E6F7FF; color: #00A2FF; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 150px; text-align: center;">
+          正在載入...
         </div>
       </div>
       
       <div class="weather-detail">
-        <div class="pill-box pill-humidity"><span>💧 相對濕度</span><span id="humidity">80%</span></div>
+        <div class="pill-box pill-humidity"><span>💧 相對濕度</span><span id="humidity">--%</span></div>
         <div class="pill-box pill-rain"><span>☂️ 降雨概率</span><span id="psr-today">--</span></div>
       </div>
 
-      <!-- 🌟 9天天氣預報顯示區域 🌟 -->
+      <!-- 9天天氣預報顯示區域 -->
       <div class="forecast-box">
         <table class="forecast-table" id="forecast-list">
-          <!-- 這裡會由 JavaScript 自動填入 9 天資料 -->
-          <tr><td colspan="4" style="text-align:center; color:#999;">正在載入未來預報...</td></tr>
+          <tr><td colspan="4" style="text-align:center; color:#999; padding-top: 20px;">正在讀取天文台數據...</td></tr>
         </table>
       </div>
     </div>
@@ -120,50 +120,36 @@ html<!DOCTYPE html>
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. 即時天氣資料
-    function getHKWeather() {
+    // 2. 整合式天氣資料讀取 (只發出一個請求，徹底解決 iOS 9 限制與卡死問題)
+    function getAllWeatherData() {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc', true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          try {
-            var data = JSON.parse(xhr.responseText);
-            if (data.temperature && data.temperature.data.length > 0) {
-              document.getElementById('temp').innerHTML = data.temperature.data[0].value + '°';
-            }
-            if (data.humidity && data.humidity.data.length > 0) {
-              document.getElementById('humidity').innerHTML = data.humidity.data[0].value + '%';
-            }
-          } catch (e) { console.log(e); }
-        }
-      };
-      xhr.send();
-    }
-    getHKWeather();
-
-    // 🌟 新增：獲取九天天氣預報 🌟
-    function get9DayForecast() {
-      var xhr = new XMLHttpRequest();
-      // 串接天文台的九天天氣預報 API (dataType=fnd)
-      xhr.open('GET', 'https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc', true);
+      xhr.open('GET', 'https://weather.gov.hk', true);
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           try {
             var data = JSON.parse(xhr.responseText);
             
-            // 更新今日的氣溫區間、文字描述和降雨概率
             if (data.weatherForecast && data.weatherForecast.length > 0) {
-              var todayData = data.weatherForecast[0];
-              document.getElementById('forecast-today-range').innerHTML = '今日預測: ' + todayData.forecastMint.value + ' - ' + todayData.forecastMaxt.value + '°C';
-              document.getElementById('weather-desc-today').innerHTML = todayData.forecastWeather;
-              document.getElementById('psr-today').innerHTML = todayData.PSR || '中';
+              // A. 讀取並修正「今日」的天氣狀況 (陣列中的第 0 筆資料)
+              var today = data.weatherForecast[0];
               
-              // 生成未來 9 天列表
+              // 顯示今日最高溫作為主溫度
+              document.getElementById('temp').innerHTML = today.forecastMaxt.value + '°';
+              // 顯示今日溫度範圍
+              document.getElementById('forecast-today-range').innerHTML = '今日預測: ' + today.forecastMint.value + ' - ' + today.forecastMaxt.value + '°C';
+              // 顯示今日相對濕度範圍
+              document.getElementById('humidity').innerHTML = today.forecastMinrh.value + '-' + today.forecastMaxrh.value;
+              // 顯示今日降雨概率 (PSR)
+              document.getElementById('psr-today').innerHTML = today.PSR || '中';
+              // 顯示今日天氣簡短描述
+              document.getElementById('weather-desc-today').innerHTML = today.forecastWeather;
+              
+              // B. 生成未來 9 天預報表格
               var tableHTML = '';
               for (var i = 0; i < data.weatherForecast.length; i++) {
                 var day = data.weatherForecast[i];
                 
-                // 格式化日期顯示 (從 20241025 改成 10/25)
+                // 格式化日期顯示 (例如 20260820 -> 08/20)
                 var rawDate = day.forecastDate; 
                 var formattedDate = rawDate.substring(4, 6) + '/' + rawDate.substring(6, 8);
                 
@@ -176,12 +162,17 @@ html<!DOCTYPE html>
               }
               document.getElementById('forecast-list').innerHTML = tableHTML;
             }
-          } catch (e) { console.log(e); }
+          } catch (e) { 
+            console.log(e); 
+            document.getElementById('forecast-list').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">數據解析出錯</td></tr>';
+          }
         }
       };
       xhr.send();
     }
-    get9DayForecast();
+    
+    // 初始化執行
+    getAllWeatherData();
 
 
     // 3. 隨機相片輪播邏輯
