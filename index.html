@@ -1,18 +1,18 @@
-html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>iPad Home Dashboard</title>
 
-  <!-- 強制 iOS 舊版 Safari 開啟全螢幕模式的設定 -->
+  <!-- 🌟 關鍵：強制 iOS 舊版 Safari 開啟全螢幕模式的設定 🌟 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
 
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #FFFDF8; color: #333333; margin: 0; padding: 20px; padding-top: 30px; }
+    body { background-color: #FFFDF8; color: #333333; margin: 0; padding: 20px; padding-top: 30px; /* 留出頂部狀態欄空間 */ }
 
     /* 頂部時間欄 */
     .top-bar { display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-bottom: 15px; }
@@ -23,25 +23,15 @@ html<!DOCTYPE html>
 
     /* 主網格佈局 - 支援舊版 Flexbox */
     .dashboard-grid { display: flex; display: -webkit-flex; gap: 20px; height: calc(100vh - 120px); }
-    .card { flex: 1; -webkit-flex: 1; background: #FFFFFF; border-radius: 20px; padding: 20px; border: 1px solid #EFEFEF; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; display: -webkit-flex; flex-direction: column; -webkit-flex-direction: column; overflow: hidden; }
+    .card { flex: 1; -webkit-flex: 1; background: #FFFFFF; border-radius: 20px; padding: 20px; border: 1px solid #EFEFEF; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; display: -webkit-flex; flex-direction: column; -webkit-flex-direction: column; }
     .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; display: flex; display: -webkit-flex; align-items: center; -webkit-align-items: center; justify-content: space-between; -webkit-justify-content: space-between; }
 
     /* 天氣樣式 */
     .temp-large { font-size: 4rem; font-weight: 800; color: #FF9F00; line-height: 1; }
-    .weather-detail { display: flex; display: -webkit-flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+    .weather-detail { display: flex; display: -webkit-flex; gap: 10px; margin-top: 20px; }
     .pill-box { flex: 1; -webkit-flex: 1; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; font-weight: bold; display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; }
     .pill-humidity { background: #E6F7FF; color: #00A2FF; }
     .pill-rain { background: #FFE6EA; color: #FF6B81; }
-
-    /* 9天天氣預報表格樣式 */
-    .forecast-box { flex: 1; -webkit-flex: 1; overflow-y: auto; border-top: 1px dashed #EFEFEF; padding-top: 15px; }
-    .forecast-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .forecast-table tr { border-bottom: 1px solid #FAFAFA; }
-    .forecast-table td { padding: 8px 4px; vertical-align: middle; text-align: left; }
-    .fc-date { font-weight: bold; color: #555555; width: 25%; }
-    .fc-week { color: #888888; width: 15%; }
-    .fc-temp { color: #FF9F00; font-weight: bold; text-align: center !important; width: 25%; }
-    .fc-desc { color: #666666; font-size: 0.85rem; text-align: right !important; width: 35%; }
 
     /* 相片輪播樣式 */
     .photo-container { flex: 1; -webkit-flex: 1; border-radius: 14px; overflow: hidden; position: relative; background: #F5F5F5; height: 100%; }
@@ -64,29 +54,20 @@ html<!DOCTYPE html>
     
     <!-- 左側：天氣 Widget -->
     <div class="card">
-      <div class="card-title">☀️ 香港即時與九天天氣預報 <span style="font-size: 0.85rem; color:#888;">九日間予報</span></div>
+      <div class="card-title">☀️ 香港即時與分時天氣 <span style="font-size: 0.85rem; color:#888;">毎時予報</span></div>
       <div style="display: flex; display: -webkit-flex; justify-content: space-between; -webkit-justify-content: space-between; align-items: center; -webkit-align-items: center; margin-top: 10px;">
         <div>
           <div style="font-size: 1.3rem; font-weight: bold;">香港 🎯</div>
-          <!-- 這裡顯示今日預測的平均/基準溫度 -->
-          <div id="temp" class="temp-large">--°</div>
-          <div id="forecast-today-range" style="font-size: 0.9rem; color: #666; margin-top: 6px;">今日預測: --°C</div>
+          <div id="temp" class="temp-large">28°</div>
+          <div style="font-size: 0.9rem; color: #666; margin-top: 6px;">今日預測: 27 - 32°C</div>
         </div>
-        <div id="weather-desc-today" style="background: #E6F7FF; color: #00A2FF; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 150px; text-align: center;">
-          正在載入...
+        <div style="background: #E6F7FF; color: #00A2FF; padding: 8px 12px; border-radius: 10px; font-size: 0.9rem; max-width: 150px;">
+          大致多雲，有幾陣驟雨
         </div>
       </div>
-      
       <div class="weather-detail">
-        <div class="pill-box pill-humidity"><span>💧 相對濕度</span><span id="humidity">--%</span></div>
-        <div class="pill-box pill-rain"><span>☂️ 降雨概率</span><span id="psr-today">--</span></div>
-      </div>
-
-      <!-- 9天天氣預報顯示區域 -->
-      <div class="forecast-box">
-        <table class="forecast-table" id="forecast-list">
-          <tr><td colspan="4" style="text-align:center; color:#999; padding-top: 20px;">正在讀取天文台數據...</td></tr>
-        </table>
+        <div class="pill-box pill-humidity"><span>💧 相對濕度</span><span id="humidity">80%</span></div>
+        <div class="pill-box pill-rain"><span>☂️ 降雨概率</span><span>中</span></div>
       </div>
     </div>
 
@@ -120,60 +101,28 @@ html<!DOCTYPE html>
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. 整合式天氣資料讀取 (只發出一個請求，徹底解決 iOS 9 限制與卡死問題)
-    function getAllWeatherData() {
+    // 2. 天氣資料
+    function getHKWeather() {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', 'https://weather.gov.hk', true);
       xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
           try {
             var data = JSON.parse(xhr.responseText);
-            
-            if (data.weatherForecast && data.weatherForecast.length > 0) {
-              // A. 讀取並修正「今日」的天氣狀況 (陣列中的第 0 筆資料)
-              var today = data.weatherForecast[0];
-              
-              // 顯示今日最高溫作為主溫度
-              document.getElementById('temp').innerHTML = today.forecastMaxt.value + '°';
-              // 顯示今日溫度範圍
-              document.getElementById('forecast-today-range').innerHTML = '今日預測: ' + today.forecastMint.value + ' - ' + today.forecastMaxt.value + '°C';
-              // 顯示今日相對濕度範圍
-              document.getElementById('humidity').innerHTML = today.forecastMinrh.value + '-' + today.forecastMaxrh.value;
-              // 顯示今日降雨概率 (PSR)
-              document.getElementById('psr-today').innerHTML = today.PSR || '中';
-              // 顯示今日天氣簡短描述
-              document.getElementById('weather-desc-today').innerHTML = today.forecastWeather;
-              
-              // B. 生成未來 9 天預報表格
-              var tableHTML = '';
-              for (var i = 0; i < data.weatherForecast.length; i++) {
-                var day = data.weatherForecast[i];
-                
-                // 格式化日期顯示 (例如 20260820 -> 08/20)
-                var rawDate = day.forecastDate; 
-                var formattedDate = rawDate.substring(4, 6) + '/' + rawDate.substring(6, 8);
-                
-                tableHTML += '<tr>' +
-                  '<td class="fc-date">' + formattedDate + '</td>' +
-                  '<td class="fc-week">' + day.week + '</td>' +
-                  '<td class="fc-temp">' + day.forecastMint.value + '-' + day.forecastMaxt.value + '°</td>' +
-                  '<td class="fc-desc">' + day.forecastWeather + '</td>' +
-                '</tr>';
-              }
-              document.getElementById('forecast-list').innerHTML = tableHTML;
+            if (data.temperature && data.temperature.data.length > 0) {
+              document.getElementById('temp').innerHTML = data.temperature.data[0].value + '°';
             }
-          } catch (e) { 
-            console.log(e); 
-            document.getElementById('forecast-list').innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">數據解析出錯</td></tr>';
+            if (data.humidity && data.humidity.data.length > 0) {
+              document.getElementById('humidity').innerHTML = data.humidity.data[0].value + '%';
+            }
+          } catch (e) {
+            console.log(e);
           }
         }
       };
       xhr.send();
     }
-    
-    // 初始化執行
-    getAllWeatherData();
-
+    getHKWeather();
 
     // 3. 隨機相片輪播邏輯
     var imageList = [
